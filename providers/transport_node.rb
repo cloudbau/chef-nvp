@@ -74,11 +74,13 @@ action :create do
 
   else # exists => update?
     unless @new_resource.integration_bridge_id == @current_resource.integration_bridge_id and
+           @new_resource.tunnel_probe_random_vlan == @current_resource.tunnel_probe_random_vlan and
            @new_resource.transport_connectors.first.map {|k,v| @current_resource.transport_connectors.first[k] == v }.all? and
            client_pem == @current_resource.client_pem
 
       Chef::Log.info "#{@new_resource.integration_bridge_id} <==> #{@current_resource.integration_bridge_id}"
       Chef::Log.info "#{@new_resource.transport_connectors} <==> #{@current_resource.transport_connectors}"
+      Chef::Log.info "#{@new_resource.tunnel_probe_random_vlan} <==> #{@current_resource.tunnel_probe_random_vlan}"
       Chef::Log.info "#{client_pem.inspect} <==> #{@current_resource.client_pem.inspect}"
 
       converge_by "updating existing transport node #{@new_resource.name}" do
@@ -148,6 +150,7 @@ def load_current_resource
     @current_resource.integration_bridge_id tnode['integration_bridge_id']
     @current_resource.transport_connectors tnode['transport_connectors']
     @current_resource.client_pem tnode['credential']['client_certificate']['pem_encoded']
+    @current_resource.tunnel_probe_random_vlan tnode['tunnel_probe_random_vlan']
     @current_resource.uuid = tnode['uuid'] # save for eventual update
     @current_resource.exists = true
   end

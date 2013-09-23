@@ -35,6 +35,8 @@ attribute :transport_connectors, :kind_of => [Array, Hash], :default => []
 attribute :integration_bridge_id, :kind_of => String, :required => true
 attribute :client_pem, :kind_of => String #, :required => true
 attribute :client_pem_file, :kind_of => String
+attribute :tunnel_probe_random_vlan, :kind_of => [TrueClass, FalseClass], :default => false
+attribute :uuid, :kind_of => String, :required => false # remember what to update/delete
 attribute :exists, :kind_of => [TrueClass, FalseClass], :default => false
 
-attr_accessor :exists
+attr_accessor :exists, :uuid

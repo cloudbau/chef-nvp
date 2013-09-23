@@ -26,6 +26,7 @@ nvp_transport_node node[:fqdn] do
   nvp_controller controller
   client_pem_file '/etc/openvswitch/ovsclient-cert.pem'
   integration_bridge_id 'br-int'
+  tunnel_probe_random_vlan true
   transport_connectors([
     {
       "transport_zone_uuid" => node[:nvp][:default_tz_uuid],
