@@ -25,7 +25,11 @@ def whyrun_supported?
 end
 
 def create_connection(controller)
-  require 'faraday'
+  begin
+    require 'faraday'
+  rescue LoadError
+    Chef::Log.error "Missing gem 'faraday'. Use the default nvp recipe to install it first."
+  end
 
   conn = Faraday.new(url: "https://#{controller[:host]}:#{controller[:port]}", ssl: { verify: false }) do |faraday|
     faraday.request  :url_encoded
@@ -34,7 +38,7 @@ def create_connection(controller)
   end
 
   resp = conn.post '/ws.v1/login', username: controller[:username], password: controller[:password]
-  Chef::Application.fatal!(resp.body, 1) unless resp.status == 200
+  Chef::Log.error(resp.body) unless resp.status == 200
 
   cookie = resp.headers['set-cookie'].split(';').first
 
@@ -68,7 +72,7 @@ action :create do
         req.headers['Content-Type'] = 'application/json'
         req.body = tnode.to_json
       end
-      Chef::Application.fatal!(resp.body, 1) unless resp.status == 201 # Created
+      Chef::Log.error(resp.body) unless resp.status == 201 # Created
     end
     @new_resource.updated_by_last_action(true)
 
@@ -102,7 +106,7 @@ action :create do
           req.headers['Content-Type'] = 'application/json'
           req.body = tnode.to_json
         end
-        Chef::Application.fatal!(resp.body, 1) unless resp.status == 200 # OK
+        Chef::Log.error(resp.body) unless resp.status == 200 # OK
       end
       @new_resource.updated_by_last_action true
     end
@@ -118,7 +122,7 @@ action :delete do
       resp = conn.delete "/ws.v1/transport-node/#{@current_resource.uuid}" do |req|
         req.headers['Cookie'] = cookie
       end
-      Chef::Application.fatal!(resp.body, 1) unless resp.status == 204 # No Content
+      Chef::Log.error(resp.body) unless resp.status == 204 # No Content
     end
 
     @new_resource.updated_by_last_action true
@@ -135,7 +139,7 @@ def load_current_resource
   resp = conn.get '/ws.v1/transport-node', display_name: @new_resource.name, fields: '*' do |req|
     req.headers['Cookie'] = cookie
   end
-  Chef::Application.fatal!(resp.body, 1) unless resp.status == 200
+  Chef::Log.error(resp.body) unless resp.status == 200
   data = JSON::parse resp.body
 
   if data['result_count'] == 0
